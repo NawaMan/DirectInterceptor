@@ -25,7 +25,7 @@ public class Agent {
 		workaroundMessages = Collections.unmodifiableSet(messages);
 	}
 
-	private static final String exceptTypesRegex = "^(java\\.|sun\\.|direct\\.interceptor\\.).*";
+	private static final String exceptTypesRegex = "^(java\\.|sun\\.|direct\\.interceptor\\.agent|direct\\.interceptor\\.handler).*";
 
 	private static void onError(String errMsg, Throwable throwable) {
 		// TODO Should propose to have this case more accurately detectable
