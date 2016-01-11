@@ -5,4 +5,4 @@
  * 
  * @author NawaMan
  */
-package direct.interceptor.example;
+package direct.interceptor.examples.log;

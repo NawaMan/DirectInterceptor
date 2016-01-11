@@ -1,4 +1,4 @@
-package direct.interceptor.example;
+package direct.interceptor.examples.log;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
