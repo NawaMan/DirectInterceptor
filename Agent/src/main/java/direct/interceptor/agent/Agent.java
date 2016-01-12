@@ -4,8 +4,10 @@ import static net.bytebuddy.matcher.ElementMatchers.nameMatches;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 import java.lang.instrument.Instrumentation;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -25,7 +27,18 @@ public class Agent {
 		workaroundMessages = Collections.unmodifiableSet(messages);
 	}
 
-	private static final String exceptTypesRegex = "^(java\\.|sun\\.|direct\\.interceptor\\.agent|direct\\.interceptor\\.handler).*";
+	private static final String exceptTypesRegex = "^(java|sun|direct\\.interceptor\\.agent|direct\\.interceptor\\.handler)\\..*";
+	
+	private static final List<String> exceptPackages;
+	static {
+		List<String> packages = new ArrayList<>();
+		packages.add("java");
+		packages.add("sun");
+		packages.add("direct.interceptor.agent");
+		packages.add("direct.interceptor.handler");
+		exceptPackages = Collections.unmodifiableList(packages);
+	}
+	
 
 	private static void onError(String errMsg, Throwable throwable) {
 		// TODO Should propose to have this case more accurately detectable
@@ -51,8 +64,16 @@ public class Agent {
 			};
 
 			Transformer transformer = new Transformer();
-
-			Junction<NamedElement> exceptTypes = not(nameMatches(exceptTypesRegex));
+			
+			Junction<NamedElement> excepts = null;
+			for (String exceptPackage : exceptPackages) {
+				String regEx = matchPackageNameStartWith(exceptPackage);
+				Junction<NamedElement> except = nameMatches(regEx);
+				excepts = (excepts == null) ? except : excepts.or(except);
+			}
+			
+			//exceptPackages
+			Junction<NamedElement> exceptTypes = not(excepts);
 
 			new AgentBuilder.Default()
 				.withListener(listener)
@@ -63,5 +84,9 @@ public class Agent {
 			System.out.println("Exception instrumenting code : " + e);
 			e.printStackTrace();
 		}
+	}
+
+	private static String matchPackageNameStartWith(String packageName) {
+		return "^" + packageName.replaceAll("\\.", "\\\\.") + "\\..*";
 	}
 }
