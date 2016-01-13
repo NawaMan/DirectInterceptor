@@ -1,11 +1,12 @@
-package direct.interceptor.examples.log;
+package direct.interceptor.examples.log.interceptor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@InterceptorAnnotation
+import direct.interceptor.examples.log.LogHandler;
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value={ElementType.METHOD})
 public @interface Log {

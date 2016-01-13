@@ -12,6 +12,8 @@ import java.util.Set;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.NamedElement;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatcher.Junction;
 
 public class Agent {
@@ -27,13 +29,13 @@ public class Agent {
 		workaroundMessages = Collections.unmodifiableSet(messages);
 	}
 
-	private static final String exceptTypesRegex = "^(java|sun|direct\\.interceptor\\.agent|direct\\.interceptor\\.handler)\\..*";
-	
 	private static final List<String> exceptPackages;
 	static {
 		List<String> packages = new ArrayList<>();
 		packages.add("java");
 		packages.add("sun");
+		packages.add("com.sun");
+		packages.add("jdk.internal");
 		packages.add("direct.interceptor.agent");
 		packages.add("direct.interceptor.handler");
 		exceptPackages = Collections.unmodifiableList(packages);
@@ -63,17 +65,18 @@ public class Agent {
 				}
 			};
 
-			Transformer transformer = new Transformer();
+			Transformer transformer = new Transformer(agentArgument);
 			
 			Junction<NamedElement> excepts = null;
 			for (String exceptPackage : exceptPackages) {
 				String regEx = matchPackageNameStartWith(exceptPackage);
 				Junction<NamedElement> except = nameMatches(regEx);
 				excepts = (excepts == null) ? except : excepts.or(except);
+				// Make it so that only method with some annotation on it is included.
 			}
 			
-			//exceptPackages
-			Junction<NamedElement> exceptTypes = not(excepts);
+			@SuppressWarnings("unchecked")
+			Junction<NamedElement> exceptTypes = not(excepts).and(notAnnotation());
 
 			new AgentBuilder.Default()
 				.withListener(listener)
@@ -84,6 +87,18 @@ public class Agent {
 			System.out.println("Exception instrumenting code : " + e);
 			e.printStackTrace();
 		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static ElementMatcher notAnnotation() {
+		return new ElementMatcher() {
+			@Override
+			public boolean matches(Object target) {
+				TypeDescription type = (TypeDescription)target;
+				return !type.isAnnotation();
+			}
+			
+		};
 	}
 
 	private static String matchPackageNameStartWith(String packageName) {

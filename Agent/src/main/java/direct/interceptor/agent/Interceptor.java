@@ -48,78 +48,66 @@ public class Interceptor {
 		List<In> finallyList = null;
 
 		try {
-			if (!method.getDeclaringClass().getCanonicalName().startsWith("java.")
-					&& !method.getDeclaringClass().getCanonicalName().startsWith("sun.")) {
-				Annotation[] annos = new Annotation[0];
+			String className = method.getDeclaringClass().getCanonicalName();
+			System.out.println("method: " + className + " -- " + method);
 
-				try {
-					annos = method.getDeclaredAnnotations();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+			Annotation[] annos = new Annotation[0];
 
-				try {
-					for (int i = 0; i < annos.length; i++) {
-						Annotation anno = annos[i];
-						boolean isSo = false;
-						try {
-							for (Annotation a : anno.annotationType().getDeclaredAnnotations()) {
-								if (a.annotationType().getSimpleName().equals("InterceptorAnnotation")) {
-									isSo = true;
-									break;
-								}
-							}
-						} catch (Exception e) {
+			try {
+				annos = method.getDeclaredAnnotations();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			try {
+				for (int i = 0; i < annos.length; i++) {
+					Annotation anno = annos[i];
+
+					@SuppressWarnings("unchecked")
+					InterceptionHandler handler = ((Class<InterceptionHandler>) (anno.getClass()
+							.getDeclaredMethod("handler", new Class[0]).invoke(anno))).newInstance();
+					ParameterPuttersProvider provider = ParameterPuttersProvider.of(method);
+					ParametersImpl parameters = new ParametersImpl(allArguments, provider);
+
+					In in = null;
+					if (handler instanceof InterceptionHandlerBefore) {
+						if (beforeList == null) {
+							beforeList = new ArrayList<>();
 						}
-
-						if (isSo) {
-							@SuppressWarnings("unchecked")
-							InterceptionHandler handler = ((Class<InterceptionHandler>) (anno.getClass()
-									.getDeclaredMethod("handler", new Class[0]).invoke(anno))).newInstance();
-							ParameterPuttersProvider provider = ParameterPuttersProvider.of(method);
-							ParametersImpl parameters = new ParametersImpl(allArguments, provider);
-
-							In in = null;
-							if (handler instanceof InterceptionHandlerBefore) {
-								if (beforeList == null) {
-									beforeList = new ArrayList<>();
-								}
-								if (in == null) {
-									in = new In(anno, handler, parameters);
-								}
-								beforeList.add(new In(anno, handler, parameters));
-							}
-							if (handler instanceof InterceptionHandlerResult) {
-								if (resultList == null) {
-									resultList = new ArrayList<>();
-								}
-								if (in == null) {
-									in = new In(anno, handler, parameters);
-								}
-								resultList.add(in);
-							}
-							if (handler instanceof InterceptionHandlerThrowable) {
-								if (throwList == null) {
-									throwList = new ArrayList<>();
-								}
-								if (in == null) {
-									in = new In(anno, handler, parameters);
-								}
-								throwList.add(in);
-							}
-							if (handler instanceof InterceptionHandlerFinally) {
-								if (finallyList == null) {
-									finallyList = new ArrayList<>();
-								}
-								if (in == null) {
-									in = new In(anno, handler, parameters);
-								}
-								finallyList.add(in);
-							}
+						if (in == null) {
+							in = new In(anno, handler, parameters);
 						}
+						beforeList.add(new In(anno, handler, parameters));
 					}
-				} catch (Exception e) {
+					if (handler instanceof InterceptionHandlerResult) {
+						if (resultList == null) {
+							resultList = new ArrayList<>();
+						}
+						if (in == null) {
+							in = new In(anno, handler, parameters);
+						}
+						resultList.add(in);
+					}
+					if (handler instanceof InterceptionHandlerThrowable) {
+						if (throwList == null) {
+							throwList = new ArrayList<>();
+						}
+						if (in == null) {
+							in = new In(anno, handler, parameters);
+						}
+						throwList.add(in);
+					}
+					if (handler instanceof InterceptionHandlerFinally) {
+						if (finallyList == null) {
+							finallyList = new ArrayList<>();
+						}
+						if (in == null) {
+							in = new In(anno, handler, parameters);
+						}
+						finallyList.add(in);
+					}
 				}
+			} catch (Exception e) {
 			}
 
 			if (beforeList != null) {
@@ -132,7 +120,7 @@ public class Interceptor {
 			}
 
 			result = callable.call();
-			
+
 		} catch (Throwable t) {
 			throwable = t;
 			throw throwable;

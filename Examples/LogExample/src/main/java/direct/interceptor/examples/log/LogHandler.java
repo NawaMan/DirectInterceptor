@@ -3,6 +3,7 @@ package direct.interceptor.examples.log;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import direct.interceptor.examples.log.interceptor.Log;
 import direct.interceptor.handler.InterceptionHandler;
 import direct.interceptor.handler.InterceptionHandlerFinally;
 import direct.interceptor.handler.Parameters;
