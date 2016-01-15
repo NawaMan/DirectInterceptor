@@ -11,6 +11,7 @@ import direct.interceptor.handler.InterceptionHandlerBefore;
 import direct.interceptor.handler.InterceptionHandlerFinally;
 import direct.interceptor.handler.InterceptionHandlerResult;
 import direct.interceptor.handler.InterceptionHandlerThrowable;
+import direct.interceptor.handler.InterceptionManager;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -19,6 +20,13 @@ import net.bytebuddy.implementation.bind.annotation.This;
 
 @SuppressWarnings("rawtypes")
 public class Interceptor {
+	
+	private final InterceptionManager manager;
+	
+	public Interceptor(InterceptionManager manager) {
+		this.manager = manager;
+	}
+	
 
 	class In<I> {
 		final Annotation anno;
@@ -48,7 +56,8 @@ public class Interceptor {
 		List<In> finallyList = null;
 
 		try {
-			String className = method.getDeclaringClass().getCanonicalName();
+			Class<?> dClss = method.getDeclaringClass();
+			String className = dClss.getCanonicalName();
 			System.out.println("method: " + className + " -- " + method);
 
 			Annotation[] annos = new Annotation[0];
@@ -60,12 +69,31 @@ public class Interceptor {
 			}
 
 			try {
+				// Must cache this 
 				for (int i = 0; i < annos.length; i++) {
 					Annotation anno = annos[i];
 
-					@SuppressWarnings("unchecked")
-					InterceptionHandler handler = ((Class<InterceptionHandler>) (anno.getClass()
-							.getDeclaredMethod("handler", new Class[0]).invoke(anno))).newInstance();
+					// OK, I admit, this is really not a good way ... but WTH.
+					String annoFullName = anno.toString().replaceAll("@([^\\(]+)\\(.*$", "$1");
+					Class<?> annoClss = Class.forName(annoFullName);
+					InterceptionHandler handler = null;
+					
+					if (manager != null) {
+						handler = manager.getHandler(anno, annoClss, clazz, method);
+					}
+					
+					if (handler == null) {
+						String annoName = annoClss.getSimpleName();
+						String hdlrClssName =  System.getenv().get(annoName + "Handler");
+						Class<?> hdlrClass = null;
+						if(hdlrClssName != null) {
+							hdlrClass = Class.forName(hdlrClssName);
+						} else {
+							Method mthd = anno.getClass().getDeclaredMethod("handler", new Class[0]);
+							hdlrClass = (Class<?>)mthd.invoke(anno);
+						}
+						handler = (InterceptionHandler)hdlrClass.newInstance();
+					}
 					ParameterPuttersProvider provider = ParameterPuttersProvider.of(method);
 					ParametersImpl parameters = new ParametersImpl(allArguments, provider);
 

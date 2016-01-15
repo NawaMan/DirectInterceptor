@@ -8,6 +8,7 @@ public interface InterceptionManager {
 	
 	public InterceptionHandler getHandler(
 			Annotation annotation,
+			Class<?> annotationClass,
 			Class<?> originClasss,
 			Method originMethod);
 	

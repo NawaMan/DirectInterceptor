@@ -2,6 +2,7 @@ package direct.interceptor.agent;
 
 import java.lang.reflect.Method;
 
+import direct.interceptor.handler.InterceptionManager;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
@@ -42,7 +43,21 @@ class $ClassTransformer implements AgentBuilder.Transformer {
 		}
 		
 		// TODO This should be cached.
-		Interceptor interceptor = new Interceptor();
+
+		InterceptionManager handler = null;
+		String managerClassName = System.getenv().get("manager");
+		if (managerClassName != null) {
+			Class<?> managerClass = null;
+			try {
+				managerClass = Class.forName(managerClassName);
+				handler = (InterceptionManager)managerClass.newInstance();
+			} catch (Exception exception) {
+				exception.printStackTrace();
+			}
+		}
+		
+		
+		Interceptor interceptor = new Interceptor(handler);
 		
 		return builder.method(matcher).intercept(MethodDelegation.to(interceptor));
 	}
