@@ -10,19 +10,19 @@ import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 
-class Transformer implements AgentBuilder.Transformer {
+class $ClassTransformer implements AgentBuilder.Transformer {
 
 	private final String option;
 
-	public Transformer(String option) {
+	public $ClassTransformer(String option) {
 		this.option = option;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public DynamicType.Builder transform(DynamicType.Builder builder, TypeDescription typeDescription) {
 
+		// TODO These should be cached
 		ElementMatcher<MethodDescription> matcher = ElementMatchers.isAnnotatedWith(ElementMatchers.nameContains(".intercept."));
-		
 		if (option != null) {
 			if (option.startsWith("nameContains=")) {
 				String contains = option.substring("nameContains=".length());
@@ -40,9 +40,11 @@ class Transformer implements AgentBuilder.Transformer {
 				}
 			}
 		}
-
-		return builder.method(matcher)
-				.intercept(MethodDelegation.to(new Interceptor()));
+		
+		// TODO This should be cached.
+		Interceptor interceptor = new Interceptor();
+		
+		return builder.method(matcher).intercept(MethodDelegation.to(interceptor));
 	}
 
 	private ElementMatcher<MethodDescription> annotationNameContains() {

@@ -1,0 +1,2 @@
+Injecting classes into the bootstrap class loader was not enabled
+Cannot define method 'equals' with the given signature as an annotation type method
