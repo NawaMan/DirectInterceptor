@@ -12,6 +12,7 @@ import direct.interceptor.handler.InterceptHandlerFinally;
 import direct.interceptor.handler.InterceptHandlerResult;
 import direct.interceptor.handler.InterceptHandlerThrowable;
 import direct.interceptor.handler.InterceptManager;
+import direct.interceptor.handler.manager.RootInterceptManager;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -80,6 +81,8 @@ public class Interceptor {
 					
 					if (manager != null) {
 						handler = manager.getHandler(anno, annoClss, clazz, method);
+					} else {
+						handler = RootInterceptManager.getHandler(anno, annoClss, clazz, method);
 					}
 					
 					if (handler == null) {
