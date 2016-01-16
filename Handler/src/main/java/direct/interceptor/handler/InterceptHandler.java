@@ -1,6 +1,6 @@
 package direct.interceptor.handler;
 
 
-public interface InterceptionHandler {
+public interface InterceptHandler {
 
 }

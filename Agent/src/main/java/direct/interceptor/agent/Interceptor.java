@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import direct.interceptor.handler.InterceptionHandler;
-import direct.interceptor.handler.InterceptionHandlerBefore;
-import direct.interceptor.handler.InterceptionHandlerFinally;
-import direct.interceptor.handler.InterceptionHandlerResult;
-import direct.interceptor.handler.InterceptionHandlerThrowable;
-import direct.interceptor.handler.InterceptionManager;
+import direct.interceptor.handler.InterceptHandler;
+import direct.interceptor.handler.InterceptHandlerBefore;
+import direct.interceptor.handler.InterceptHandlerFinally;
+import direct.interceptor.handler.InterceptHandlerResult;
+import direct.interceptor.handler.InterceptHandlerThrowable;
+import direct.interceptor.handler.InterceptManager;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.Origin;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
@@ -21,19 +21,19 @@ import net.bytebuddy.implementation.bind.annotation.This;
 @SuppressWarnings("rawtypes")
 public class Interceptor {
 	
-	private final InterceptionManager manager;
+	private final InterceptManager manager;
 	
-	public Interceptor(InterceptionManager manager) {
+	public Interceptor(InterceptManager manager) {
 		this.manager = manager;
 	}
 	
 
 	class In<I> {
 		final Annotation anno;
-		final InterceptionHandler handler;
+		final InterceptHandler handler;
 		final ParametersImpl parameters;
 
-		public In(Annotation anno, InterceptionHandler handler, ParametersImpl parameters) {
+		public In(Annotation anno, InterceptHandler handler, ParametersImpl parameters) {
 			super();
 			this.anno = anno;
 			this.handler = handler;
@@ -76,7 +76,7 @@ public class Interceptor {
 					// OK, I admit, this is really not a good way ... but WTH.
 					String annoFullName = anno.toString().replaceAll("@([^\\(]+)\\(.*$", "$1");
 					Class<?> annoClss = Class.forName(annoFullName);
-					InterceptionHandler handler = null;
+					InterceptHandler handler = null;
 					
 					if (manager != null) {
 						handler = manager.getHandler(anno, annoClss, clazz, method);
@@ -92,13 +92,13 @@ public class Interceptor {
 							Method mthd = anno.getClass().getDeclaredMethod("handler", new Class[0]);
 							hdlrClass = (Class<?>)mthd.invoke(anno);
 						}
-						handler = (InterceptionHandler)hdlrClass.newInstance();
+						handler = (InterceptHandler)hdlrClass.newInstance();
 					}
 					ParameterPuttersProvider provider = ParameterPuttersProvider.of(method);
 					ParametersImpl parameters = new ParametersImpl(allArguments, provider);
 
 					In in = null;
-					if (handler instanceof InterceptionHandlerBefore) {
+					if (handler instanceof InterceptHandlerBefore) {
 						if (beforeList == null) {
 							beforeList = new ArrayList<>();
 						}
@@ -107,7 +107,7 @@ public class Interceptor {
 						}
 						beforeList.add(new In(anno, handler, parameters));
 					}
-					if (handler instanceof InterceptionHandlerResult) {
+					if (handler instanceof InterceptHandlerResult) {
 						if (resultList == null) {
 							resultList = new ArrayList<>();
 						}
@@ -116,7 +116,7 @@ public class Interceptor {
 						}
 						resultList.add(in);
 					}
-					if (handler instanceof InterceptionHandlerThrowable) {
+					if (handler instanceof InterceptHandlerThrowable) {
 						if (throwList == null) {
 							throwList = new ArrayList<>();
 						}
@@ -125,7 +125,7 @@ public class Interceptor {
 						}
 						throwList.add(in);
 					}
-					if (handler instanceof InterceptionHandlerFinally) {
+					if (handler instanceof InterceptHandlerFinally) {
 						if (finallyList == null) {
 							finallyList = new ArrayList<>();
 						}
@@ -140,8 +140,8 @@ public class Interceptor {
 
 			if (beforeList != null) {
 				for (In in : beforeList) {
-					if (in.handler instanceof InterceptionHandlerBefore) {
-						InterceptionHandlerBefore handler = ((InterceptionHandlerBefore) in.handler);
+					if (in.handler instanceof InterceptHandlerBefore) {
+						InterceptHandlerBefore handler = ((InterceptHandlerBefore) in.handler);
 						handler.handleBefore(startTime, in.anno, clazz, object, method, in.parameters);
 					}
 				}
@@ -157,8 +157,8 @@ public class Interceptor {
 
 			if ((throwable != null) && (resultList != null)) {
 				for (In in : resultList) {
-					if (in.handler instanceof InterceptionHandlerResult) {
-						InterceptionHandlerResult handler = ((InterceptionHandlerResult) in.handler);
+					if (in.handler instanceof InterceptHandlerResult) {
+						InterceptHandlerResult handler = ((InterceptHandlerResult) in.handler);
 						handler.handleResult(startTime, in.anno, clazz, object, method, in.parameters, finishTime,
 								result);
 					}
@@ -166,8 +166,8 @@ public class Interceptor {
 			}
 			if ((throwable == null) && (throwList != null)) {
 				for (In in : throwList) {
-					if (in.handler instanceof InterceptionHandlerThrowable) {
-						InterceptionHandlerThrowable handler = ((InterceptionHandlerThrowable) in.handler);
+					if (in.handler instanceof InterceptHandlerThrowable) {
+						InterceptHandlerThrowable handler = ((InterceptHandlerThrowable) in.handler);
 						handler.handleThrowable(startTime, in.anno, clazz, object, method, in.parameters, finishTime,
 								throwable);
 					}
@@ -175,8 +175,8 @@ public class Interceptor {
 			}
 			if (finallyList != null) {
 				for (In in : finallyList) {
-					if (in.handler instanceof InterceptionHandlerFinally) {
-						InterceptionHandlerFinally handler = ((InterceptionHandlerFinally) in.handler);
+					if (in.handler instanceof InterceptHandlerFinally) {
+						InterceptHandlerFinally handler = ((InterceptHandlerFinally) in.handler);
 						handler.handleFinally(startTime, in.anno, clazz, object, method, in.parameters, finishTime,
 								result, throwable);
 					}

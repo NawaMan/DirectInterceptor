@@ -2,7 +2,7 @@ package direct.interceptor.agent;
 
 import java.lang.reflect.Method;
 
-import direct.interceptor.handler.InterceptionManager;
+import direct.interceptor.handler.InterceptManager;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
@@ -44,13 +44,13 @@ class $ClassTransformer implements AgentBuilder.Transformer {
 		
 		// TODO This should be cached.
 
-		InterceptionManager handler = null;
+		InterceptManager handler = null;
 		String managerClassName = System.getenv().get("manager");
 		if (managerClassName != null) {
 			Class<?> managerClass = null;
 			try {
 				managerClass = Class.forName(managerClassName);
-				handler = (InterceptionManager)managerClass.newInstance();
+				handler = (InterceptManager)managerClass.newInstance();
 			} catch (Exception exception) {
 				exception.printStackTrace();
 			}

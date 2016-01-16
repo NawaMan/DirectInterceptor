@@ -65,7 +65,7 @@ public class Agent {
 			$AgentListener         listener        = theListener();
 			$ClassTransformer      transformer     = new $ClassTransformer(agentArgument);
 			Junction<NamedElement> ignoredPackages = theIgnoredPackages();
-			Junction<NamedElement> exceptTypes     = not(ignoredPackages).and(notAnnotation());
+			Junction<NamedElement> exceptTypes     = not(ignoredPackages).and(notAnnotation()).and(notInterface());
 
 			new AgentBuilder.Default()
 					.withListener(listener)
@@ -105,6 +105,18 @@ public class Agent {
 			public boolean matches(Object target) {
 				TypeDescription type = (TypeDescription) target;
 				return !type.isAnnotation();
+			}
+
+		};
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static ElementMatcher notInterface() {
+		return new ElementMatcher() {
+			@Override
+			public boolean matches(Object target) {
+				TypeDescription type = (TypeDescription) target;
+				return !type.isInterface();
 			}
 
 		};

@@ -4,11 +4,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import di.example.log.core.intercept.Log;
-import direct.interceptor.handler.InterceptionHandler;
-import direct.interceptor.handler.InterceptionHandlerFinally;
+import direct.interceptor.handler.InterceptHandler;
+import direct.interceptor.handler.InterceptHandlerFinally;
 import direct.interceptor.handler.Parameters;
 
-public class LogHandler implements InterceptionHandler, InterceptionHandlerFinally {
+public class LogHandler implements InterceptHandler, InterceptHandlerFinally {
 
 	@Override
 	public <T> void handleFinally(long startTime, Annotation anno, Class<T> clazz, Object object, Method method,
