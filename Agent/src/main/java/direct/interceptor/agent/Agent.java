@@ -50,6 +50,10 @@ public class Agent {
 		throwable.printStackTrace();
 	}
 
+	public static void agentmain(String agentArgument, Instrumentation instrumentation) {
+		premain(agentArgument, instrumentation);
+	}
+
 	/**
 	 * The premain method which will be run before the main method (dah!). It
 	 * perform the registration for class transformation.
