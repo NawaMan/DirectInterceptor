@@ -57,7 +57,7 @@ class $ClassTransformer implements AgentBuilder.Transformer {
 		}
 		
 		
-		Interceptor interceptor = new Interceptor(handler);
+		$Interceptor interceptor = new $Interceptor(handler);
 		
 		return builder.method(matcher).intercept(MethodDelegation.to(interceptor));
 	}

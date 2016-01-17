@@ -20,11 +20,11 @@ import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.implementation.bind.annotation.This;
 
 @SuppressWarnings("rawtypes")
-public class Interceptor {
+public class $Interceptor {
 	
 	private final InterceptManager manager;
 	
-	public Interceptor(InterceptManager manager) {
+	$Interceptor(InterceptManager manager) {
 		this.manager = manager;
 	}
 	
