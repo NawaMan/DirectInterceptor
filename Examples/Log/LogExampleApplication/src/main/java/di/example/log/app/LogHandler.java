@@ -15,7 +15,7 @@ public class LogHandler implements InterceptHandler, InterceptHandlerFinally {
 			Parameters parameters, long finishTime, Object result, Throwable throwable) {
 		Log log = (Log) anno;
 		String format = log.value();
-		String logMsg = startTime +" to " + finishTime + "(" + (finishTime - startTime) + ")" + ": " + String.format(format, parameters.asArray());
+		String logMsg = String.format(format, parameters.asArray());
 		if (throwable != null) {
 			System.out.println(logMsg + " throws " + throwable);
 		} else {

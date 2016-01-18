@@ -1,7 +1,9 @@
 package di.example.log.app;
 
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import com.sun.tools.attach.VirtualMachine;
 
@@ -19,9 +21,6 @@ public class DynamicMain {
 	
 	private static final String jarFilePath = "/home/dssb/git/DirectInterceptor/Agent/target/Agent-0.0.1-SNAPSHOT-jar-with-dependencies.jar";
 	
-	static {
-		loadAgent();
-    }
 
     public static void loadAgent() {
         System.out.println("dynamically loading javaagent");
@@ -50,6 +49,10 @@ public class DynamicMain {
 	}
 	
 	public static void main(String ... args) {
+		List<String> list = Arrays.asList(args);
+		if (list.contains("--with-agent")) {
+			loadAgent();
+		}
 		
 		InterceptManager manager = new BasicInterceptManager(Collections.singletonMap(Log.class, ()-> new LogHandler()));
 		RootInterceptManager.addManager(manager);
